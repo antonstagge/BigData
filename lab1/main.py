@@ -1,7 +1,7 @@
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import confusion_matrix
 from sklearn.feature_extraction.text import CountVectorizer
-from tokenizer import tokenize
+from tokenizer import tokenize, set_common_words
 from openpyxl import load_workbook
 
 
@@ -43,6 +43,8 @@ def read_data(file):
 def train_model():
     x_train, y_train = read_training_data('lab_train.txt')
 
+    set_common_words(x_train)
+
     vectorizer = CountVectorizer(tokenizer=tokenize)
     # create a matrix with rows as texts and columns as tokens,
     # each cell containst the number of times the token appears in the text
@@ -80,10 +82,10 @@ def main():
     print("Postitive booking comments: %d \nNegative booking comments: %d " % (200-neg_count, neg_count))
     
 
-    print("\n\nFOR APPENDIX")
-    for i in range(len(y_pred)):
-        print()
-        print(("POSITIVE: ".encode('utf-8') if y_pred[i] == 1 else "NEGATIVE: ".encode('utf-8')) + x_eval[i].encode('utf-8'))
+    # print("\n\nFOR APPENDIX")
+    # for i in range(len(y_pred)):
+    #     print()
+    #     print(("POSITIVE: ".encode('utf-8') if y_pred[i] == 1 else "NEGATIVE: ".encode('utf-8')) + x_eval[i].encode('utf-8'))
 
 
 
