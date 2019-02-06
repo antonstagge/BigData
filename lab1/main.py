@@ -28,6 +28,8 @@ def read_training_data(file):
     return x_vector, y_vector
 
 def read_data(file):
+    """ Read data from an xlsx file
+    """
     workbook = load_workbook(file, data_only=True)
     worksheet = workbook.active
     first_colum = worksheet['A']
@@ -41,6 +43,10 @@ def read_data(file):
 
 
 def train_model():
+    """ Train the model and build the 
+    CountVectorizer which contains the 
+    vocabulary. 
+    """
     x_train, y_train = read_training_data('lab_train.txt')
 
     set_common_words(x_train)
@@ -56,6 +62,10 @@ def train_model():
     return classifier, vectorizer
 
 def test_model(classifier, vectorizer):
+    """ Test the model accuracy by counting the 
+    number of wrong predictions. Also prints the
+    confusion matrix. 
+    """
     x_test, y_test = read_training_data('lab_test.txt')
     x_test_fit = vectorizer.transform(x_test)
     y_pred = classifier.predict(x_test_fit)
