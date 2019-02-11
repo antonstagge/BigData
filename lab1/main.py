@@ -1,7 +1,8 @@
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
 from sklearn.feature_extraction.text import CountVectorizer
-from tokenizer import tokenize, set_common_words
+from bag_vectorizer import BagVectorizer
 from openpyxl import load_workbook
 
 
@@ -42,32 +43,24 @@ def read_data(file):
 
 
 
-def train_model():
-    """ Train the model and build the 
-    CountVectorizer which contains the 
-    vocabulary. 
+def train_model(x_train, y_train, bag_vectorizer):
+    """ Train the model
     """
-    x_train, y_train = read_training_data('lab_train.txt')
-
-    set_common_words(x_train)
-
-    vectorizer = CountVectorizer(tokenizer=tokenize)
     # create a matrix with rows as texts and columns as tokens,
     # each cell containst the number of times the token appears in the text
-    x_train_fit = vectorizer.fit_transform(x_train)
+    x_train_fit = bag_vectorizer.fit_transform()
     
     classifier = MultinomialNB()
     classifier.fit(x_train_fit, y_train)
 
-    return classifier, vectorizer
+    return classifier
 
-def test_model(classifier, vectorizer):
+def test_model(classifier, bag_vectorizer, x_test, y_test):
     """ Test the model accuracy by counting the 
     number of wrong predictions. Also prints the
     confusion matrix. 
     """
-    x_test, y_test = read_training_data('lab_test.txt')
-    x_test_fit = vectorizer.transform(x_test)
+    x_test_fit = bag_vectorizer.transform(x_test)
     y_pred = classifier.predict(x_test_fit)
 
     error = 0.0
@@ -82,13 +75,29 @@ def test_model(classifier, vectorizer):
         
 
 def main():
-    classifier, vectorizer = train_model()
-    test_model(classifier, vectorizer)
+    x_train, y_train = read_training_data('lab_train.txt')
+    x_test, y_test = read_training_data('lab_test.txt')
     x_eval = read_data('evaluation_dataset.xlsx')
-    x_eval_fit = vectorizer.transform(x_eval)
-    y_pred = classifier.predict(x_eval_fit)
 
-    neg_count = (200 - sum(y_pred))/2
+    models = []
+    for bag_size in range(1,4):
+        for num_words in range(9,12):
+            bag_vectorizer = BagVectorizer(num_words, num_words, bag_size, x_train)
+            classifier = train_model(x_train, y_train, bag_vectorizer)
+            models.append((classifier, bag_vectorizer))
+
+    for classifier, bag_vectorizer in models:
+        print("MODEL WITH BAG SIZE: %d and WORDS %d:" % (bag_vectorizer.bag_size, bag_vectorizer.n_common_words))
+        test_model(classifier, bag_vectorizer, x_test, y_test)
+        print()
+
+    bag_vectorizer_eval = BagVectorizer(10, 10, 2, x_train)
+    classifier_eval = train_model(x_train, y_train, bag_vectorizer_eval)
+
+    x_eval_fit = bag_vectorizer_eval.transform(x_eval)
+    y_pred_eval = classifier_eval.predict(x_eval_fit)
+
+    neg_count = (200 - sum(y_pred_eval))/2
     print("Postitive booking comments: %d \nNegative booking comments: %d " % (200-neg_count, neg_count))
     
 
