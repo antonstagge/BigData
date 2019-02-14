@@ -1,6 +1,7 @@
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_auc_score
 from sklearn.feature_extraction.text import CountVectorizer
 from bag_vectorizer import BagVectorizer
 from openpyxl import load_workbook
@@ -25,7 +26,7 @@ def read_training_data(file):
         if score > 3:
             y_vector.append(1)
         else:
-            y_vector.append(-1)
+            y_vector.append(0)
     return x_vector, y_vector
 
 def read_data(file):
@@ -79,20 +80,27 @@ def main():
     x_test, y_test = read_training_data('lab_test.txt')
     x_eval = read_data('evaluation_dataset.xlsx')
 
-    models = []
-    for bag_size in range(1,4):
-        for num_words in range(9,12):
-            bag_vectorizer = BagVectorizer(num_words, num_words, bag_size, x_train)
-            classifier = train_model(x_train, y_train, bag_vectorizer)
-            models.append((classifier, bag_vectorizer))
+    # models = []
+    # for bag_size in range(1,4):
+    #     for num_words in range(9,12):
+    #         bag_vectorizer = BagVectorizer(num_words, num_words, bag_size, x_train)
+    #         classifier = train_model(x_train, y_train, bag_vectorizer)
+    #         models.append((classifier, bag_vectorizer))
 
-    for classifier, bag_vectorizer in models:
-        print("MODEL WITH BAG SIZE: %d and WORDS %d:" % (bag_vectorizer.bag_size, bag_vectorizer.n_common_words))
-        test_model(classifier, bag_vectorizer, x_test, y_test)
-        print()
+    # for classifier, bag_vectorizer in models:
+    #     print("MODEL WITH BAG SIZE: %d and WORDS %d:" % (bag_vectorizer.bag_size, bag_vectorizer.n_common_words))
+    #     test_model(classifier, bag_vectorizer, x_test, y_test)
+    #     print()
 
     bag_vectorizer_eval = BagVectorizer(10, 10, 2, x_train)
     classifier_eval = train_model(x_train, y_train, bag_vectorizer_eval)
+
+    # Multinomial
+    y_score = classifier_eval.predict_proba(bag_vectorizer_eval.transform(x_test))[:,1]
+
+    # y_score = classifier_eval.decision_function(bag_vectorizer_eval.transform(x_test))
+    auc = roc_auc_score(y_test, y_score)
+    print("THE AREA UNDER ROC IS: %.3f" % auc)
 
     x_eval_fit = bag_vectorizer_eval.transform(x_eval)
     y_pred_eval = classifier_eval.predict(x_eval_fit)
