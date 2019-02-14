@@ -11,4 +11,14 @@ import scrapy
 class SteamItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    pass
+    app_id = scrapy.Field()
+    author = scrapy.Field()
+    recommended = scrapy.Field()
+    review = scrapy.Field()
+
+class CsgoItem(scrapy.Item):
+    # define the fields for your item here like:
+    # name = scrapy.Field()
+    author = scrapy.Field()
+    recommended = scrapy.Field()
+    review = scrapy.Field()
