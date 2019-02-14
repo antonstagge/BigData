@@ -44,14 +44,15 @@ def read_data(file):
 
 
 
-def train_model(x_train, y_train, bag_vectorizer):
+def train_model(x_train, y_train, bag_vectorizer, c_value, kernel):
     """ Train the model
     """
     # create a matrix with rows as texts and columns as tokens,
     # each cell containst the number of times the token appears in the text
     x_train_fit = bag_vectorizer.fit_transform()
     
-    classifier = MultinomialNB()
+    # classifier = MultinomialNB()
+    classifier = SVC(C=c_value, kernel=kernel)
     classifier.fit(x_train_fit, y_train)
 
     return classifier
@@ -73,6 +74,14 @@ def test_model(classifier, bag_vectorizer, x_test, y_test):
     confusion = confusion_matrix(y_test, y_pred)
     print("pred-actual \n[[neg-neg pos-neg]\n[neg-pos pos-pos]]")
     print(confusion)
+    print()
+    # Multinomial
+    # y_score = classifier.predict_proba(bag_vectorizer_eval.transform(x_test))[:,1]
+    # SVM
+    y_score = classifier.decision_function(bag_vectorizer.transform(x_test))
+    auc = roc_auc_score(y_test, y_score)
+    print("THE AREA UNDER ROC IS: %.3f" % auc)
+    print()
         
 
 def main():
@@ -80,27 +89,29 @@ def main():
     x_test, y_test = read_training_data('lab_test.txt')
     x_eval = read_data('evaluation_dataset.xlsx')
 
+    # c_values = [0.5, 1, 2, 5, 10, 20, 50]
+    # kernels = ["rbf", "linear", "poly", "sigmoid"]
     # models = []
-    # for bag_size in range(1,4):
-    #     for num_words in range(9,12):
-    #         bag_vectorizer = BagVectorizer(num_words, num_words, bag_size, x_train)
-    #         classifier = train_model(x_train, y_train, bag_vectorizer)
+    # for c_value in c_values:
+    #     for kernel in kernels:
+    #         bag_vectorizer = BagVectorizer(10, 10, 2, x_train)
+    #         classifier = train_model(x_train, y_train, bag_vectorizer, c_value, kernel)
     #         models.append((classifier, bag_vectorizer))
 
-    # for classifier, bag_vectorizer in models:
-    #     print("MODEL WITH BAG SIZE: %d and WORDS %d:" % (bag_vectorizer.bag_size, bag_vectorizer.n_common_words))
-    #     test_model(classifier, bag_vectorizer, x_test, y_test)
-    #     print()
+    # i = 0
+    # for c_value in c_values:
+    #     for kernel in kernels:
+    #         print("MODEL WITH C-VALUE : %f and kernel %s:" % (c_value, kernel))
+    #         classifier, bag_vectorizer = models[i]
+    #         test_model(classifier, bag_vectorizer, x_test, y_test)
+    #         print()
+    #         i += 1
 
     bag_vectorizer_eval = BagVectorizer(10, 10, 2, x_train)
-    classifier_eval = train_model(x_train, y_train, bag_vectorizer_eval)
-
-    # Multinomial
-    y_score = classifier_eval.predict_proba(bag_vectorizer_eval.transform(x_test))[:,1]
-
-    # y_score = classifier_eval.decision_function(bag_vectorizer_eval.transform(x_test))
-    auc = roc_auc_score(y_test, y_score)
-    print("THE AREA UNDER ROC IS: %.3f" % auc)
+    classifier_eval = train_model(x_train, y_train, bag_vectorizer_eval, 1.0, "linear")
+    print("FINAL-MODEL WITH C-VALUE : %f and kernel %s:" % (1.0, "linear"))
+    test_model(classifier_eval, bag_vectorizer_eval, x_test, y_test)
+    print()
 
     x_eval_fit = bag_vectorizer_eval.transform(x_eval)
     y_pred_eval = classifier_eval.predict(x_eval_fit)
@@ -109,8 +120,8 @@ def main():
     print("Postitive booking comments: %d \nNegative booking comments: %d " % (200-neg_count, neg_count))
     
 
-    # print("\n\nFOR APPENDIX")
-    # for i in range(len(y_pred)):
+    # print("\n\nFOR APPENDIX") # not needed all are positive. 
+    # for i in range(len(y_pred_eval)):
     #     print()
     #     print(("POSITIVE: ".encode('utf-8') if y_pred[i] == 1 else "NEGATIVE: ".encode('utf-8')) + x_eval[i].encode('utf-8'))
 
