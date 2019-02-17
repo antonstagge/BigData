@@ -63,8 +63,11 @@ class CsgoSpider(scrapy.Spider):
         for card in review_cards:
             yield self.create_item(card)
         self.scrape_count += 10
-        print("Scrape count is: %d" % self.scrape_count)
-        if self.scrape_count > 2000:
+
+        if self.scrape_count % 1000 == 0:
+            print("Scrape count is: %d" % self.scrape_count)
+        if self.scrape_count > 1000000:
+            print("Final scrape count is: %d" % self.scrape_count)
             return
         
         yield scrapy.FormRequest(url=response.url, formdata=data, callback=self.parse_form)
